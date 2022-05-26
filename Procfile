@@ -1,1 +1,1 @@
-web: gunicorn wsgi:publishmedia
+web: gunicorn wsgi:app
