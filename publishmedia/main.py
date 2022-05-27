@@ -1,8 +1,10 @@
-from flask import Flask, render_template, redirect, request, session
+from flask import Flask, render_template, redirect, request, session, url_for
 import requests
 from oauthlib.oauth2 import WebApplicationClient
 import os
 from dotenv import load_dotenv
+from .posting_content import upload_image
+from .utils import setCreds
 
 load_dotenv()
 
@@ -16,23 +18,34 @@ client = WebApplicationClient(INSTAGRAM_CLIENT_ID)
 
 app = Flask(__name__)
 
+
 @app.route("/")
 def index():
     code = request.args.get("code")
-    print("\n\nThis is code", code)
     if code:
-        url = "https://api.instagram.com/oauth/access_token"
-        data = {"client_id": INSTAGRAM_CLIENT_ID, "client_secret": INSTAGRAM_CLIENT_SECRET, "grant_type": "authorization_code", "redirect_uri": os.environ.get("REDIRECT_URL"), "code": code}
-        # session = requests.Session()
-        # json_data = session.post(url, data)
-        # print(json_data)
-        return f"Data"
+        data = {
+            "client_id": INSTAGRAM_CLIENT_ID,
+            "client_secret": INSTAGRAM_CLIENT_SECRET,
+            "grant_type": "authorization_code",
+            "redirect_uri": os.environ.get("REDIRECT_URL"),
+            "code": code,
+        }
+        print("\n\n\nCookie: ", request.cookies.get("sessionid"), "\n\n")
+        session = requests.session()
+        response_data = session.post(os.environ.get("IG_ACCESS_TOKEN_URL"), data)
+        json_data = response_data.json()
+        print(response_data)
+        print(response_data.cookies)
+        print(json_data["access_token"], str(json_data["user_id"]))
+        setCreds(json_data["access_token"], str(json_data["user_id"]))
+        upload_image()
+        return "Jay Shree Ram"
     return '<a class="button" href="/login">IG Login</a>'
+
 
 @app.route("/privacy-policy")
 def privacy_policy():
     return render_template("privacy_policy.html")
-
 
 
 @app.route("/login")
@@ -44,7 +57,14 @@ def login():
         redirect_uri=os.environ.get("REDIRECT_URL"),
         scope=["user_profile", "user_media"],
     )
-    print("*"*20)
+    print("\n\n\n", request.cookies.get("sessionid"))
+    print("*" * 20)
     print(request_uri, "\n", request.base_url)
-    print("*"*20)
+    print("*" * 20)
     return redirect(request_uri)
+
+
+@app.route("/publish-media")
+def publish_media():
+    upload_image()
+    return "You're on the publish media page!"
