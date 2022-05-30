@@ -155,3 +155,18 @@ def upload_image():
     print(
         f'\n---- PUBLISHED IMAGE RESPONSE -----\n\tResponse:{publishImageResponse["json_data_pretty"]}'
     )
+
+
+def get_user_media_edge():
+    """
+    API Endpoint: 
+        https://graph.instagram.com/me/media?fields={fields}&access_token={access_token}
+    """
+
+    params = getCreds()
+    endpointParams = dict()
+    endpointParams["fields"] = ["id", "caption"]
+    endpointParams["access_token"] = params["access_token"]
+    url = "https://graph.instagram.com/me/media"
+    
+    return makeApiCall(url, endpointParams, "GET")

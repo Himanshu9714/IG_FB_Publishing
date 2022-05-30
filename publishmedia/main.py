@@ -3,7 +3,7 @@ import requests
 from oauthlib.oauth2 import WebApplicationClient
 import os
 from dotenv import load_dotenv
-from .posting_content import upload_image
+from .posting_content import get_user_media_edge
 from .utils import setCreds
 
 load_dotenv()
@@ -21,6 +21,7 @@ app = Flask(__name__)
 
 @app.route("/")
 def index():
+    response = None
     code = request.args.get("code")
     if code:
         data = {
@@ -38,9 +39,8 @@ def index():
         print(response_data.cookies)
         print(json_data["access_token"], str(json_data["user_id"]))
         setCreds(json_data["access_token"], str(json_data["user_id"]))
-        upload_image()
-        return "Jay Shree Ram"
-    return '<a class="button" href="/login">IG Login</a>'
+        response = get_user_media_edge()
+    return render_template("index.html", {"response": response})
 
 
 @app.route("/privacy-policy")
