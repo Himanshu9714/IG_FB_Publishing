@@ -170,3 +170,16 @@ def get_user_media_edge():
     url = "https://graph.instagram.com/me/media"
     
     return makeApiCall(url, endpointParams, "GET")
+
+
+def get_media_with_media_id(media_id):
+    """
+    API Endpoint:
+        https://graph.instagram.com/{media_id}?fields=id,media_type,media_url,username,timestamp&access_token={access_token}
+    """
+    params = getCreds()
+    endpointParams = dict()
+    endpointParams["access_token"] = params["access_token"]
+    url = f"https://graph.instagram.com/{media_id}?fields=id,media_type,media_url,username,timestamp"
+    
+    return makeApiCall(url, endpointParams, "GET")

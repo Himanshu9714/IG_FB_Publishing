@@ -12,10 +12,6 @@
     <a class="button" href="/login">IG Login</a>
     <p id="status"></p>
 
-    {% if response %}
-    <p>{{response}}</p>
-    {% endif %}
-
     <fb:login-button scope="public_profile,email" onlogin="checkLoginState();">
     </fb:login-button>
     <script>

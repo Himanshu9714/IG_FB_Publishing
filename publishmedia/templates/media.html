@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <div class="container">
+        {% for k, v in response.items() %}
+        {% if k == "media_url" %}
+        <b>{{k}}:</b> <a href="{{v}}">Image Link</a><br><br>
+        {% else %}
+        <b>{{k}}:</b> {{v}}<br><br>
+        {% endif %}
+        {% endfor %}
+    </div>
+</body>
+
+</html>

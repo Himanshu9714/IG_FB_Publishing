@@ -4,6 +4,8 @@ from oauthlib.oauth2 import WebApplicationClient
 import os
 from dotenv import load_dotenv
 from .posting_content import get_user_media_edge
+from .posting_content import upload_image
+from .posting_content import get_media_with_media_id
 from .utils import setCreds
 
 load_dotenv()
@@ -21,7 +23,6 @@ app = Flask(__name__)
 
 @app.route("/")
 def index():
-    response = None
     code = request.args.get("code")
     if code:
         data = {
@@ -35,13 +36,19 @@ def index():
         session = requests.session()
         response_data = session.post(os.environ.get("IG_ACCESS_TOKEN_URL"), data)
         json_data = response_data.json()
-        print(response_data)
-        print(response_data.cookies)
         print(json_data["access_token"], str(json_data["user_id"]))
         setCreds(json_data["access_token"], str(json_data["user_id"]))
-        response = get_user_media_edge()
-    return render_template("index.html", {"response": response})
+        return redirect(url_for("ig_media"))
+        
+    return render_template("index.html")
 
+@app.route("/ig-media")
+def ig_media():
+    response = get_user_media_edge()
+    media_id = response["json_data"]["data"][0]["id"]
+    response = get_media_with_media_id(media_id)
+    print(media_id, "\n\n", response["json_data"])
+    return render_template("media.html", response=response["json_data"])
 
 @app.route("/privacy-policy")
 def privacy_policy():
