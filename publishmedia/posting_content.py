@@ -2,6 +2,7 @@ import time
 from .utils import getCreds, makeApiCall
 from dotenv import load_dotenv
 import os
+import logging
 
 load_dotenv()
 
@@ -159,7 +160,7 @@ def upload_image():
 
 def get_user_media_edge():
     """
-    API Endpoint: 
+    API Endpoint:
         https://graph.instagram.com/me/media?fields={fields}&access_token={access_token}
     """
 
@@ -168,7 +169,7 @@ def get_user_media_edge():
     endpointParams["fields"] = ["id", "caption"]
     endpointParams["access_token"] = params["access_token"]
     url = "https://graph.instagram.com/me/media"
-    
+
     return makeApiCall(url, endpointParams, "GET")
 
 
@@ -181,5 +182,30 @@ def get_media_with_media_id(media_id):
     endpointParams = dict()
     endpointParams["access_token"] = params["access_token"]
     url = f"https://graph.instagram.com/{media_id}?fields=id,media_type,media_url,username,timestamp"
-    
+
     return makeApiCall(url, endpointParams, "GET")
+
+
+def upload_photo(cl, file_path, caption):
+    """
+
+    IMAGE_PATH_TO_STORY: This is an environment variable, which is declared in the .env file.
+    It must has to be specified to upload image to the story. Also, it is recommended to upload jpg or jpeg format.
+    Warning: It doesn't support other image format instead of jpg.
+
+    Method: photo_upload_to_story(path: Path, caption: str, upload_id: str, mentions: List[Usertag], locations: List[StoryLocation], links: List[StoryLink], hashtags: List[StoryHashtag], stickers: List[StorySticker], extra_data: Dict[str, str] = {})
+    Warning: (Support JPG files)
+
+    """
+    try:
+        logging.info("\nStart uploading image to story...")
+        cl.photo_upload(file_path, caption=caption)
+        logging.info("Upload image to story successfully!")
+        return "Upload image as post successfully!"
+
+    except Exception as e:
+        logging.info("Failed to upload image to story!")
+        logging.error(
+            "Please provide image path or may be you've not passed the image object!"
+        )
+        return "Failed to upload image as post!"

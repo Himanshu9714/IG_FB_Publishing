@@ -10,7 +10,8 @@
 
 <body>
     <a class="button" href="/login">IG Login</a>
-    <p id="status"></p>
+    <p id="status"></p><br>
+    <a href="#" id="anchor"></a><br><br>
 
     <fb:login-button scope="public_profile,email,instagram_content_publish" onlogin="checkLoginState();">
     </fb:login-button>
@@ -77,6 +78,8 @@
                 console.log('Successful login for: ' + response.name);
                 document.getElementById('status').innerHTML =
                     'Thanks for logging in, ' + response.name + '!';
+                document.getElementById('anchor').href = 'https://myigcontentpublishapp.herokuapp.com/ig-media';
+                document.getElementById('anchor').innerHTML = 'Upload Image';
             });
         }
     </script>

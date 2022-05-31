@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, request, session, url_for
+from flask import Flask, render_template, redirect, request, session, url_for, flash
 import requests
 from oauthlib.oauth2 import WebApplicationClient
 import os
@@ -6,10 +6,13 @@ from dotenv import load_dotenv
 from .posting_content import get_user_media_edge
 from .posting_content import upload_image
 from .posting_content import get_media_with_media_id
+from .posting_content import upload_photo
 from .utils import setCreds
+from instagrapi import Client
 
 load_dotenv()
 
+CLIENT = Client()
 
 # Configuration
 INSTAGRAM_CLIENT_ID = os.environ.get("IG_APP_ID", None)
@@ -19,6 +22,8 @@ INSTAGRAM_CLIENT_SECRET = os.environ.get("IG_SECRET_KEY", None)
 client = WebApplicationClient(INSTAGRAM_CLIENT_ID)
 
 app = Flask(__name__)
+app.config["UPLOAD_FOLDER"] = "."
+app.config["SECRET_KEY"] = "dev"
 
 
 @app.route("/")
@@ -39,16 +44,41 @@ def index():
         print(json_data["access_token"], str(json_data["user_id"]))
         setCreds(json_data["access_token"], str(json_data["user_id"]))
         return redirect(url_for("ig_media"))
-        
+
     return render_template("index.html")
 
-@app.route("/ig-media")
+
+@app.route("/ig-media", methods=["GET", "POST"])
 def ig_media():
-    response = get_user_media_edge()
-    media_id = response["json_data"]["data"][0]["id"]
-    response = get_media_with_media_id(media_id)
-    print(media_id, "\n\n", response["json_data"])
+    response = dict()
+    if request.method == "POST":
+        CLIENT.login("ram_loka_1234", "rambhaktahanuman1234")
+        file = request.files["file"]
+        content_publish_type = request.form["select"]
+
+        if "file" not in request.files:
+            flash("No file part", category="danger")
+            return redirect(request.url)
+
+        elif content_publish_type != "":
+            file_save_path = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
+            file.save(file_save_path)
+
+            if content_publish_type == "Image Post":
+                message = upload_photo(
+                    CLIENT, file_save_path, caption="Jay Shree Ram!"
+                )
+                flash(message, category="success")
+
+    try:
+        response = get_user_media_edge()
+        media_id = response["json_data"]["data"][0]["id"]
+        response = get_media_with_media_id(media_id)
+        print(media_id, "\n\n", response["json_data"])
+    except:
+        response["json_data"] = {}
     return render_template("media.html", response=response["json_data"])
+
 
 @app.route("/privacy-policy")
 def privacy_policy():
