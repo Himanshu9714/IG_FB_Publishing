@@ -39,11 +39,10 @@ def index():
         session = requests.session()
         response_data = session.post(os.environ.get("IG_ACCESS_TOKEN_URL"), data)
         json_data = response_data.json()
-        print(json_data["access_token"], str(json_data["user_id"]))
         app.config["USER_ACCESS_TOKEN"] = json_data["access_token"]
         app.config["USER_IG_ID"] = str(json_data["user_id"])
         return redirect(url_for("ig_media"))
-        
+
     return render_template("index.html")
 
 
@@ -52,11 +51,7 @@ def ig_media():
     print("Setting Credentials...", FB_ACCESS_TOKEN)
     app.config.update(USER_ACCESS_TOKEN=FB_ACCESS_TOKEN)
     print(app.config["USER_ACCESS_TOKEN"], "17841453260604057")
-    setCreds(app.config["USER_ACCESS_TOKEN"], "17841453260604057")
-    # response = get_user_media_edge()
-    # media_id = response["json_data"]["data"][0]["id"]
-    # response = get_media_with_media_id(media_id)
-    # print(media_id, "\n\n", response["json_data"])
+    setCreds(app.config["USER_ACCESS_TOKEN"], "17841453260604057")             
     upload_image()
     return render_template("media.html", response={"success": "uploaded successfully!"})
 
