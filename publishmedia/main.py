@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, request, session, url_for, flash
+from flask import Flask, render_template, redirect, request, session, url_for
 import requests
 from oauthlib.oauth2 import WebApplicationClient
 import os
@@ -6,24 +6,22 @@ from dotenv import load_dotenv
 from .posting_content import get_user_media_edge
 from .posting_content import upload_image
 from .posting_content import get_media_with_media_id
-from .posting_content import upload_photo
 from .utils import setCreds
-from instagrapi import Client
 
 load_dotenv()
 
-CLIENT = Client()
 
 # Configuration
 INSTAGRAM_CLIENT_ID = os.environ.get("IG_APP_ID", None)
 INSTAGRAM_CLIENT_SECRET = os.environ.get("IG_SECRET_KEY", None)
 
+FB_ACCESS_TOKEN = None
+
 # OAuth 2 client setup
 client = WebApplicationClient(INSTAGRAM_CLIENT_ID)
 
 app = Flask(__name__)
-app.config["UPLOAD_FOLDER"] = "."
-app.config["SECRET_KEY"] = "dev"
+app.config["USER_ACCESS_TOKEN"] = None
 
 
 @app.route("/")
@@ -42,42 +40,25 @@ def index():
         response_data = session.post(os.environ.get("IG_ACCESS_TOKEN_URL"), data)
         json_data = response_data.json()
         print(json_data["access_token"], str(json_data["user_id"]))
-        setCreds(json_data["access_token"], str(json_data["user_id"]))
+        app.config["USER_ACCESS_TOKEN"] = json_data["access_token"]
+        app.config["USER_IG_ID"] = str(json_data["user_id"])
         return redirect(url_for("ig_media"))
-
+        
     return render_template("index.html")
 
 
-@app.route("/ig-media", methods=["GET", "POST"])
+@app.route("/ig-media")
 def ig_media():
-    response = dict()
-    if request.method == "POST":
-        CLIENT.login("ram_loka_1234", "rambhaktahanuman1234")
-        file = request.files["file"]
-        content_publish_type = request.form["select"]
-
-        if "file" not in request.files:
-            flash("No file part", category="danger")
-            return redirect(request.url)
-
-        elif content_publish_type != "":
-            file_save_path = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
-            file.save(file_save_path)
-
-            if content_publish_type == "Image Post":
-                message = upload_photo(
-                    CLIENT, file_save_path, caption="Jay Shree Ram!"
-                )
-                flash(message, category="success")
-
-    try:
-        response = get_user_media_edge()
-        media_id = response["json_data"]["data"][0]["id"]
-        response = get_media_with_media_id(media_id)
-        print(media_id, "\n\n", response["json_data"])
-    except:
-        response["json_data"] = {}
-    return render_template("media.html", response=response["json_data"])
+    print("Setting Credentials...", FB_ACCESS_TOKEN)
+    app.config.update(USER_ACCESS_TOKEN=FB_ACCESS_TOKEN)
+    print(app.config["USER_ACCESS_TOKEN"], "17841453260604057")
+    setCreds(app.config["USER_ACCESS_TOKEN"], "17841453260604057")
+    # response = get_user_media_edge()
+    # media_id = response["json_data"]["data"][0]["id"]
+    # response = get_media_with_media_id(media_id)
+    # print(media_id, "\n\n", response["json_data"])
+    upload_image()
+    return render_template("media.html", response={"success": "uploaded successfully!"})
 
 
 @app.route("/privacy-policy")
@@ -92,7 +73,7 @@ def login():
     request_uri = client.prepare_request_uri(
         authorization_endpoint,
         redirect_uri=os.environ.get("REDIRECT_URL"),
-        scope=["user_profile", "user_media"],
+        scope=["user_profile", "user_media", "instagram_content_publish"],
     )
     print("\n\n\n", request.cookies.get("sessionid"))
     print("*" * 20)
@@ -105,3 +86,13 @@ def login():
 def publish_media():
     upload_image()
     return "You're on the publish media page!"
+
+
+@app.route("/get-token", methods=['POST'])
+def get_token():
+    jsdata = request.get_json()
+    access_token = jsdata["authResponse"]["accessToken"]
+    global FB_ACCESS_TOKEN
+    FB_ACCESS_TOKEN = access_token
+    print("Access Token", FB_ACCESS_TOKEN)
+    return redirect(url_for("ig_media"))

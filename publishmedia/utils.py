@@ -6,9 +6,13 @@ from dotenv import load_dotenv
 load_dotenv()
 
 def setCreds(access_token, instagram_id):
+    print("access_token", access_token, "instagram_id", instagram_id)
     if access_token is not None and instagram_id is not None:
         os.environ["USER_ACCESS_TOKEN"] = access_token
         os.environ["USER_INSTAGRAM_ID"] = instagram_id
+        print("Set Creds")
+        print('os.environ.get("USER_ACCESS_TOKEN") 0', os.environ.get("USER_ACCESS_TOKEN"))
+        print('os.environ.get("USER_INSTAGRAM_ID") 0', os.environ.get("USER_INSTAGRAM_ID"))
 
 
 def getCreds():
