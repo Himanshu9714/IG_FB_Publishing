@@ -14,6 +14,7 @@ load_dotenv()
 # Configuration
 INSTAGRAM_CLIENT_ID = os.environ.get("IG_APP_ID", None)
 INSTAGRAM_CLIENT_SECRET = os.environ.get("IG_SECRET_KEY", None)
+INSTAGRAM_ID = os.environ.get("IG_ID", None)
 
 FB_ACCESS_TOKEN = None
 
@@ -35,7 +36,6 @@ def index():
             "redirect_uri": os.environ.get("REDIRECT_URL"),
             "code": code,
         }
-        print("\n\n\nCookie: ", request.cookies.get("sessionid"), "\n\n")
         session = requests.session()
         response_data = session.post(os.environ.get("IG_ACCESS_TOKEN_URL"), data)
         json_data = response_data.json()
@@ -50,8 +50,7 @@ def index():
 def ig_media():
     print("Setting Credentials...", FB_ACCESS_TOKEN)
     app.config.update(USER_ACCESS_TOKEN=FB_ACCESS_TOKEN)
-    print(app.config["USER_ACCESS_TOKEN"], "17841453260604057")
-    setCreds(app.config["USER_ACCESS_TOKEN"], "17841453260604057")             
+    setCreds(app.config["USER_ACCESS_TOKEN"], INSTAGRAM_ID)             
     upload_image()
     return render_template("media.html", response={"success": "uploaded successfully!"})
 
@@ -64,16 +63,11 @@ def privacy_policy():
 @app.route("/login")
 def login():
     authorization_endpoint = os.environ.get("IG_DISCOVERY_URL")
-    print("os.environ.get('REDIRECT_URL') ", os.environ.get("REDIRECT_URL"))
     request_uri = client.prepare_request_uri(
         authorization_endpoint,
         redirect_uri=os.environ.get("REDIRECT_URL"),
         scope=["user_profile", "user_media", "instagram_content_publish"],
     )
-    print("\n\n\n", request.cookies.get("sessionid"))
-    print("*" * 20)
-    print(request_uri, "\n", request.base_url)
-    print("*" * 20)
     return redirect(request_uri)
 
 
@@ -89,5 +83,4 @@ def get_token():
     access_token = jsdata["authResponse"]["accessToken"]
     global FB_ACCESS_TOKEN
     FB_ACCESS_TOKEN = access_token
-    print("Access Token", FB_ACCESS_TOKEN)
     return redirect(url_for("ig_media"))
